@@ -11,4 +11,9 @@ echo "Starting nrpe daemon (allowed hosts: ${ALLOWED_HOSTS})"
 #tail -f /tmp/nrpe.log &
 
 syslogd -n -O- &
-nrpe -c /etc/nrpe.cfg -f -n
+
+if [ "${SSL_ENABLED}" == "true" ]; then
+  nrpe -c /etc/nrpe.cfg -f
+else
+  nrpe -c /etc/nrpe.cfg -f -n
+fi
