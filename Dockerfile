@@ -10,6 +10,7 @@ ENV \
   ALLOWED_HOSTS=127.0.0.1 \
   NRPE_DEBUG=0
 
+ADD checks/ /usr/lib/nagios/plugins/
 ADD nrpe.cfg /etc/nrpe.cfg
 ADD docker_entrypoint.sh /usr/local/bin/docker_entrypoint.sh
 
