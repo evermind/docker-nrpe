@@ -53,7 +53,7 @@ def check(path,args,checked_devices,uniquefs):
 				return None
 
 	stats=os.statvfs(path)
-	print (stats);
+
 	# https://stackoverflow.com/a/21834323
 	bytes_total_unprivileged=stats.f_bsize*(stats.f_blocks-stats.f_bfree+stats.f_bavail)
 	bytes_total=stats.f_bsize*stats.f_blocks
