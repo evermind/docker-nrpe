@@ -12,11 +12,21 @@ class Status:
 def human_size(bytes, units=[' bytes','KB','MB','GB','TB']):
 	return str(bytes) + units[0] if bytes < 1024 else human_size(bytes>>10, units[1:])
 
-def check(path,args):
+def get_device(path):
+	with open('/proc/mounts','r') as mounts:
+		for line in mounts:
+			if not ' ' in line:
+				continue
+			(device,mountpoint,*rest)=line.split()
+			if mountpoint==path and device!='none':
+				return device
+	return None
+
+def check(path,args,checked_devices,uniquefs):
 	if '=' in path:
 		(path,alias)=path.split('=',2)
 	else:
-		alias=path
+		alias=None
 	optional=False
 	if path.endswith('?'):
 		path=path[:-1]
@@ -30,7 +40,20 @@ def check(path,args):
 			'status': Status.CRITICAL,
 			'message': '%s is not mounted'%path
 		}
+	path=os.path.normpath(path)
+	if alias is None:
+		alias=path
+	device=get_device(path)
+	if device is not None:
+		already_reported=device in checked_devices
+		checked_devices.append(device)
+		if already_reported:
+			logging.debug("Volume %s is on an already reported device",path)
+			if uniquefs:
+				return None
+
 	stats=os.statvfs(path)
+	print (stats);
 	# https://stackoverflow.com/a/21834323
 	bytes_total_unprivileged=stats.f_bsize*(stats.f_blocks-stats.f_bfree+stats.f_bavail)
 	bytes_total=stats.f_bsize*stats.f_blocks
@@ -97,6 +120,7 @@ def threshold_type(s):
 def main():
 	parser = argparse.ArgumentParser(description='Check free disk space')
 	parser.add_argument('--debug','-d',action='store_true')
+	parser.add_argument('--uniquefs','-u',action='store_true', help="If two or more checked mounts point to the same device, only the first match will be reported. Ignored if device is 'none'.")
 	parser.add_argument('--path','-p',metavar='path',default=['/'],nargs='+', help="A list of paths to check. Append '?' to optional paths. Append '=alias' to set an alias name (e.g. /mnt/data?=/data results in an optional check on /mnt/data which is shown as /data if an alert occurs)")
 	parser.add_argument('--warn','-w',default='20%',type=threshold_type,
 		help='Min free treshold for warning. Default is 20%%. Examples: "5G","100M", "2T", "1.5%%,25G" (this will use the smaller of both, depending on disk size)')
@@ -106,11 +130,12 @@ def main():
 
 	logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG if args.debug else logging.ERROR)
 
+	checked_devices=[]
 	status=None
 	messages=[]
 	stats=[]
 	for path in args.path:
-		check_result=check(path,args)
+		check_result=check(path,args,checked_devices,args.uniquefs)
 		if check_result is None:
 			continue
 		if status is None or status<check_result['status']:
