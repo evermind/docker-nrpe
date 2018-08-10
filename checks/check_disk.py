@@ -17,7 +17,7 @@ def get_device(path):
 		for line in mounts:
 			if not ' ' in line:
 				continue
-			(device,mountpoint,*rest)=line.split()
+			(device,mountpoint)=line.split()[:2]
 			if mountpoint==path and device!='none':
 				return device
 	return None
