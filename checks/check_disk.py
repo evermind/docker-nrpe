@@ -13,6 +13,10 @@ def human_size(bytes, units=[' bytes','KB','MB','GB','TB']):
 	return str(bytes) + units[0] if bytes < 1024 else human_size(bytes>>10, units[1:])
 
 def check(path,args):
+	if '=' in path:
+		(path,alias)=path.split('=',2)
+	else:
+		alias=path
 	optional=False
 	if path.endswith('?'):
 		path=path[:-1]
@@ -39,18 +43,18 @@ def check(path,args):
 
 	if bytes_free<bytes_critical[0]:
 		status=Status.CRITICAL
-		message="%s %s (<%s, CRIT)"%(path,human_size(bytes_free),human_size(bytes_critical[0]))
+		message="%s %s (<%s, CRIT)"%(alias,human_size(bytes_free),human_size(bytes_critical[0]))
 	elif bytes_free<bytes_warning[0]:
 		status=Status.WARNING
-		message="%s %s (<%s, WARN)"%(path,human_size(bytes_free),human_size(bytes_warning[0]))
+		message="%s %s (<%s, WARN)"%(alias,human_size(bytes_free),human_size(bytes_warning[0]))
 	else:
 		status=Status.OK
-		message="%s %s (>=%s, OK)"%(path,human_size(bytes_free),human_size(bytes_warning[0]))
+		message="%s %s (>=%s, OK)"%(alias,human_size(bytes_free),human_size(bytes_warning[0]))
 
 	return {
 		'status': status,
 		'message': message,
-		'stats': '%s=%sMB;%s;%s;0;%s' % (path,bytes_used/1024/1024,
+		'stats': '%s=%sMB;%s;%s;0;%s' % (alias,bytes_used/1024/1024,
 			(bytes_total-bytes_warning[0])/1024/1024,
 			(bytes_total-bytes_critical[0])/1024/1024,
 			bytes_total/1024/1024
@@ -93,7 +97,7 @@ def threshold_type(s):
 def main():
 	parser = argparse.ArgumentParser(description='Check free disk space')
 	parser.add_argument('--debug','-d',action='store_true')
-	parser.add_argument('--path','-p',metavar='path',default=['/'],nargs='+', help="A list of paths to check. Append '?' to optional paths")
+	parser.add_argument('--path','-p',metavar='path',default=['/'],nargs='+', help="A list of paths to check. Append '?' to optional paths. Append '=alias' to set an alias name (e.g. /mnt/data?=/data results in an optional check on /mnt/data which is shown as /data if an alert occurs)")
 	parser.add_argument('--warn','-w',default='20%',type=threshold_type,
 		help='Min free treshold for warning. Default is 20%%. Examples: "5G","100M", "2T", "1.5%%,25G" (this will use the smaller of both, depending on disk size)')
 	parser.add_argument('--crit','-c',default='10%',type=threshold_type,
@@ -120,7 +124,7 @@ def main():
 		status_txt='WARNING'
 	if status==Status.CRITICAL:
 		status_txt='CRITICAL'
-	print 'DISK %s - %s|%s' % (status_txt,'; '.join(messages),' '.join(stats))
+	print ('DISK %s - %s|%s' % (status_txt,'; '.join(messages),' '.join(stats)))
 	sys.exit(status)
 
 if __name__ == "__main__":
