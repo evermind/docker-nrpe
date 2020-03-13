@@ -1,7 +1,7 @@
 FROM alpine:3.7
 
 RUN \
-  apk add --update --no-cache nrpe monitoring-plugins nrpe-plugin bash python curl && \
+  apk add --update --no-cache nrpe monitoring-plugins nrpe-plugin bash python curl zfs && \
   curl -s https://gist.githubusercontent.com/micw/d7c0e34aee751e81c5aa952b29b8631b/raw/8d67835c09ed2d32a61a05b5e4f0e2451fd2f0d4/update_config.py \
     > /usr/local/bin/update_config.py && \
   chmod 0755 /usr/local/bin/update_config.py
