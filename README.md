@@ -3,8 +3,10 @@
 ## Status
 
 * basic checks working
-* zfs is not working now because access to zfs from inside docker is not set up
+* for zfs checks, the container must be run in privileged mode
 
 ## Versions
 
-master - initial and current working version
+v1.0   - basic checks
+v1.1   - add zfs checks
+master - current development version working version
