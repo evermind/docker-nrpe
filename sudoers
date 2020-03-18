@@ -1,0 +1,3 @@
+root ALL=(ALL) ALL
+
+nagios ALL=(ALL) NOPASSWD: /usr/lib/monitoring-plugins/check_zpools.sh *

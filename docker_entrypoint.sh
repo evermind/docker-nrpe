@@ -6,10 +6,6 @@ set -e
 
 echo "Starting nrpe daemon (allowed hosts: ${ALLOWED_HOSTS})"
 
-#touch /tmp/nrpe.log
-#chown nagios /tmp/nrpe.log
-#tail -f /tmp/nrpe.log &
-
 syslogd -n -O- &
 
 if [ "${SSL_ENABLED}" == "true" ]; then
