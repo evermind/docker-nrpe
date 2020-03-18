@@ -1,4 +1,4 @@
-FROM alpine:3.11
+FROM alpine:3.8
 
 RUN \
   apk add --update --no-cache nrpe monitoring-plugins nrpe-plugin bash python curl zfs sudo && \
